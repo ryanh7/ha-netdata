@@ -1,0 +1,32 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "name": "名称",
+                    "host": "Netdata主机地址",
+                    "port": "Netdata主机端口"
+                },
+                "title": "Netdata"
+            },
+            "domains": {
+                "data": {
+                    "domains": "数据类型"
+                },
+                "title": "Netdata"
+            },
+            "sensors": {
+                "data": {
+                    "resources": "传感器"
+                },
+                "title": "Netdata"
+            },
+            "filters": {
+                "data": {
+                    "filters": "均值滤波"
+                },
+                "title": "Netdata"
+            }
+        }
+    }
+}

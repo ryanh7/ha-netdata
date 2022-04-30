@@ -1,0 +1,32 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "name": "Name",
+                    "host": "Host",
+                    "port": "Port"
+                },
+                "title": "Netdata"
+            },
+            "domains": {
+                "data": {
+                    "domains": "Domains"
+                },
+                "title": "Netdata"
+            },
+            "sensors": {
+                "data": {
+                    "resources": "Sensors"
+                },
+                "title": "Netdata"
+            },
+            "filters": {
+                "data": {
+                    "filters": "Filters"
+                },
+                "title": "Netdata"
+            }
+        }
+    }
+}

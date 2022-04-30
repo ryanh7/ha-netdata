@@ -1,0 +1,7 @@
+{
+  "name": "Netdata",
+  "homeassistant": "0.115.0",
+  "country": "CN",
+  "domains": ["sensor"],
+  "render_readme": true
+}
