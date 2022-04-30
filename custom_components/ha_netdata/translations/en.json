@@ -20,12 +20,6 @@
                     "resources": "Sensors"
                 },
                 "title": "Netdata"
-            },
-            "filters": {
-                "data": {
-                    "filters": "Filters"
-                },
-                "title": "Netdata"
             }
         }
     }

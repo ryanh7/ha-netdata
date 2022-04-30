@@ -74,36 +74,17 @@ class NetdataFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self.filters = sorted(user_input[CONF_RESOURCES])
             self.config.update(user_input)
-            return await self.async_step_filters()
+            await self.async_set_unique_id(
+                f"netdata-{self.config[CONF_HOST]}-{self.config[CONF_PORT]}"
+            )
+            self._abort_if_unique_id_configured()
+            return self.async_create_entry(title=self.config[CONF_NAME], data=self.config)
 
         return self.async_show_form(
             step_id="sensors",
             data_schema=vol.Schema(
                     {
                         vol.Required(CONF_RESOURCES): cv.multi_select(self.sensors)
-                    }
-            ),
-            errors=errors,
-        )
-
-
-    async def async_step_filters(self, user_input=None):
-        """Handle a flow initialized by the user."""
-        errors = {}
-
-        if user_input is not None:
-            await self.async_set_unique_id(
-                f"netdata-{self.config[CONF_HOST]}-{self.config[CONF_PORT]}"
-            )
-            self._abort_if_unique_id_configured()
-            self.config.update(user_input)
-            return self.async_create_entry(title=self.config[CONF_NAME], data=self.config)
-
-        return self.async_show_form(
-            step_id="filters",
-            data_schema=vol.Schema(
-                    {
-                        vol.Optional(CONF_FILTERS): cv.multi_select(self.filters)
                     }
             ),
             errors=errors,

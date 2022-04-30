@@ -20,12 +20,6 @@
                     "resources": "传感器"
                 },
                 "title": "Netdata"
-            },
-            "filters": {
-                "data": {
-                    "filters": "均值滤波"
-                },
-                "title": "Netdata"
             }
         }
     }

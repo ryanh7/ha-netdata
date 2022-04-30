@@ -10,8 +10,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     config = entry.data
     host = config[CONF_HOST]
     port = config[CONF_PORT]
-    filters = [ res.split("/") for res in config.get(CONF_FILTERS,[])]
-    netdata = NetdataData(hass, host, port, filters)
+    netdata = NetdataData(hass, host, port)
     await netdata.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})

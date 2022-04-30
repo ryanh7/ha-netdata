@@ -42,59 +42,50 @@ async def async_setup_entry(
     name = config[CONF_NAME]
     host = config[CONF_HOST]
     port = config[CONF_PORT]
-    resources = [ res.split("/") for res in config[CONF_RESOURCES]]
-    netdata = hass.data[DOMAIN][entry.entry_id]
-
-    if netdata.api.metrics is None:
-        raise PlatformNotReady
+    resources = config[CONF_RESOURCES]
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
     dev: list[SensorEntity] = []
-    for [sensor, element] in resources:
-        sensor_name = f"{sensor} {element}"
-        try:
-            resource_data = netdata.api.metrics[sensor]
-            unit = (
-                PERCENTAGE
-                if resource_data["units"] == "percentage"
-                else resource_data["units"]
-            )
-        except KeyError:
-            _LOGGER.error("Sensor is not available: %s", sensor)
-            continue
-
+    for res in resources:
+        [sensor, element] = res.split("/")
         unique_id = f"netdata-{host}-{port}-{sensor}-{element}"
         dev.append(
             NetdataSensor(
-                netdata, unique_id, name, sensor, sensor_name, element, unit
+                coordinator, unique_id, name, sensor, element
             )
         )
 
-    dev.append(NetdataAlarms(netdata, name, host, port))
+    dev.append(NetdataAlarms(coordinator, name, host, port))
     async_add_entities(dev, True)
 
 
 class NetdataSensor(CoordinatorEntity, SensorEntity):
     """Implementation of a Netdata sensor."""
 
-    def __init__(self, netdata, unique_id, name, sensor, sensor_name, element, unit):
+    def __init__(self, coordinator, unique_id, name, sensor, element):
         """Initialize the Netdata sensor."""
-        super().__init__(netdata)
-        self.netdata = netdata
+        super().__init__(coordinator)
         self._unique_id = unique_id
         self._state = None
         self._sensor = sensor
         self._element = element
-        self._sensor_name = self._sensor if sensor_name is None else sensor_name
         self._name = name
-        self._unit_of_measurement = unit
+        
         self._icon = "mdi:chart-line"
-
         if "net." in self._sensor:
             if "received" in self._element:
                 self._icon = "mdi:download"
             elif "sent" in self._element:
                 self._icon = "mdi:upload"
-    
+        
+        self._unit = self.coordinator.data.metrics[self._sensor]["units"]
+        if self._unit == "kilobits/s":
+            self._unit_of_measurement = DATA_RATE_MEGABYTES_PER_SECOND
+        elif self._unit == "percentage":
+            self._unit_of_measurement == PERCENTAGE
+        else:
+            self._unit_of_measurement = self._unit
+
     @property
     def unique_id(self):
         return self._unique_id
@@ -102,13 +93,11 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self._name} {self._sensor_name}"
+        return f"{self._name} {self._sensor} {self._element}"
 
     @property
     def native_unit_of_measurement(self):
         """Return the unit the value is expressed in."""
-        if self._unit_of_measurement == "kilobits/s":
-            return DATA_RATE_MEGABYTES_PER_SECOND
         return self._unit_of_measurement
 
     @property
@@ -119,8 +108,11 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the state of the resources."""
-        value = self.netdata.async_get_resource(self._sensor, self._element)
-        if self._unit_of_measurement == "kilobits/s":
+        resource_data = self.coordinator.data.metrics.get(self._sensor)
+        value = round(
+            abs(resource_data["dimensions"][self._element]["value"]), 2)
+
+        if self._unit == "kilobits/s":
             return round(value / 1024 / 8, 3)
 
         return value
@@ -129,10 +121,9 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
 class NetdataAlarms(CoordinatorEntity, SensorEntity):
     """Implementation of a Netdata alarm sensor."""
 
-    def __init__(self, netdata, name, host, port):
+    def __init__(self, coordinator, name, host, port):
         """Initialize the Netdata alarm sensor."""
-        super().__init__(netdata)
-        self.netdata = netdata
+        super().__init__(coordinator)
         self._state = None
         self._name = name
         self._host = host
@@ -146,7 +137,7 @@ class NetdataAlarms(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the state of the resources."""
-        alarms = self.netdata.api.alarms["alarms"]
+        alarms = self.coordinator.data.alarms["alarms"]
         self._state = None
         number_of_alarms = len(alarms)
         number_of_relevant_alarms = number_of_alarms
@@ -179,39 +170,19 @@ class NetdataAlarms(CoordinatorEntity, SensorEntity):
             return "mdi:alert"
         return "mdi:crosshairs-question"
 
-        
-
 
 class NetdataData(DataUpdateCoordinator):
     """The class for handling the data retrieval."""
 
-    def __init__(self, hass, host, port, filters):
+    def __init__(self, hass, host, port):
         """Initialize the data object."""
         super().__init__(
             hass, _LOGGER, name=DOMAIN, update_interval=NETDATA_UPDATE_INTERVAL
         )
         self.api = Netdata(host, port=port)
-        self.filters = filters
-        
-        self.cache = {}
-        for sensor,element in self.filters:
-            self.cache[(sensor,element)] = deque(maxlen= 3)
-    
+
     async def _async_update_data(self):
         await self.api.get_allmetrics()
         await self.api.get_alarms()
 
-        for [sensor,element] in self.filters:
-            resource_data = self.api.metrics.get(sensor)
-            self.cache[(sensor,element)].append(abs(resource_data["dimensions"][element]["value"]))
         return self.api
-    
-    def async_get_resource(self, sensor, element):
-        if values:=self.cache.get((sensor, element)):
-            avg = np.mean(values)
-            return round(avg,2)
-
-        resource_data = self.api.metrics.get(sensor)
-        return round(abs(resource_data["dimensions"][element]["value"]), 2)
-
-        
