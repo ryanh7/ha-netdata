@@ -32,9 +32,6 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
 NETDATA_UPDATE_INTERVAL = timedelta(seconds=1)
 
 
-DEFAULT_ICON = "mdi:desktop-classic"
-
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -90,6 +87,13 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         self._sensor_name = self._sensor if sensor_name is None else sensor_name
         self._name = name
         self._unit_of_measurement = unit
+        self._icon = "mdi:chart-line"
+
+        if "net." in self._sensor:
+            if "received" in self._element:
+                self._icon = "mdi:download"
+            elif "sent" in self._element:
+                self._icon = "mdi:upload"
     
     @property
     def unique_id(self):
@@ -110,7 +114,7 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
     @property
     def icon(self):
         """Return the icon to use in the frontend, if any."""
-        return DEFAULT_ICON
+        return self._icon
 
     @property
     def native_value(self):
@@ -118,7 +122,7 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         value = self.netdata.async_get_resource(self._sensor, self._element)
         if self._unit_of_measurement == "kilobits/s":
             return round(value / 1024 / 8, 3)
-            
+
         return value
 
 
@@ -194,12 +198,8 @@ class NetdataData(DataUpdateCoordinator):
             self.cache[(sensor,element)] = deque(maxlen= 3)
     
     async def _async_update_data(self):
-        try:
-            await self.api.get_allmetrics()
-            await self.api.get_alarms()
-        except NetdataError:
-            _LOGGER.error("Unable to retrieve data from Netdata")
-            raise UpdateFailed
+        await self.api.get_allmetrics()
+        await self.api.get_alarms()
 
         for [sensor,element] in self.filters:
             resource_data = self.api.metrics.get(sensor)
