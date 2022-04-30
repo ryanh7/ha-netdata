@@ -22,5 +22,21 @@
                 "title": "Netdata"
             }
         }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "domains": "数据类型"
+                },
+                "title": "Netdata"
+            },
+            "sensors": {
+                "data": {
+                    "resources": "传感器"
+                },
+                "title": "Netdata"
+            }
+        }
     }
 }

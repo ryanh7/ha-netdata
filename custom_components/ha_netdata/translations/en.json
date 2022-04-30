@@ -22,5 +22,21 @@
                 "title": "Netdata"
             }
         }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "domains": "Domains"
+                },
+                "title": "Netdata"
+            },
+            "sensors": {
+                "data": {
+                    "resources": "Sensors"
+                },
+                "title": "Netdata"
+            }
+        }
     }
 }
