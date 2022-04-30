@@ -3,11 +3,8 @@ from __future__ import annotations
 
 from datetime import timedelta
 import logging
-import numpy as np
-from collections import deque
 
 from netdata import Netdata
-from netdata.exceptions import NetdataError
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import (
@@ -19,18 +16,13 @@ from homeassistant.const import (
     DATA_RATE_MEGABYTES_PER_SECOND
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
-
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
-NETDATA_UPDATE_INTERVAL = timedelta(seconds=1)
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -174,10 +166,10 @@ class NetdataAlarms(CoordinatorEntity, SensorEntity):
 class NetdataData(DataUpdateCoordinator):
     """The class for handling the data retrieval."""
 
-    def __init__(self, hass, host, port):
+    def __init__(self, hass, host, port, interval):
         """Initialize the data object."""
         super().__init__(
-            hass, _LOGGER, name=DOMAIN, update_interval=NETDATA_UPDATE_INTERVAL
+            hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=interval)
         )
         self.api = Netdata(host, port=port)
 

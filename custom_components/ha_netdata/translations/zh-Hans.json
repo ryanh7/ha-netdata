@@ -17,7 +17,8 @@
             },
             "sensors": {
                 "data": {
-                    "resources": "传感器"
+                    "resources": "传感器",
+                    "scan_interval": "刷新间隔(秒)"
                 },
                 "title": "Netdata"
             }
@@ -33,7 +34,8 @@
             },
             "sensors": {
                 "data": {
-                    "resources": "传感器"
+                    "resources": "传感器",
+                    "scan_interval": "刷新间隔(秒)"
                 },
                 "title": "Netdata"
             }

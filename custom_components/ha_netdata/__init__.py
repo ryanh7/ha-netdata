@@ -1,8 +1,8 @@
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform, CONF_HOST, CONF_PORT
+from homeassistant.const import Platform, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from .sensor import NetdataData
-from .const import DOMAIN, CONF_FILTERS
+from .const import DOMAIN
 
 PLATFORMS = [Platform.SENSOR]
 
@@ -10,7 +10,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     config = entry.data
     host = config[CONF_HOST]
     port = config[CONF_PORT]
-    netdata = NetdataData(hass, host, port)
+    interval = config[CONF_SCAN_INTERVAL]
+    netdata = NetdataData(hass, host, port, interval)
     await netdata.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})

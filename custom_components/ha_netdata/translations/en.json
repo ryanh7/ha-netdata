@@ -17,7 +17,8 @@
             },
             "sensors": {
                 "data": {
-                    "resources": "Sensors"
+                    "resources": "Sensors",
+                    "scan_interval": "Update interval (seconds)"
                 },
                 "title": "Netdata"
             }
@@ -33,7 +34,8 @@
             },
             "sensors": {
                 "data": {
-                    "resources": "Sensors"
+                    "resources": "Sensors",
+                    "scan_interval": "Update interval (seconds)"
                 },
                 "title": "Netdata"
             }

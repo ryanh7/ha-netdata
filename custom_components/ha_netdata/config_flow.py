@@ -1,4 +1,5 @@
 from __future__ import annotations
+from email.policy import default
 import logging
 
 import voluptuous as vol
@@ -6,7 +7,7 @@ from netdata import Netdata
 from homeassistant import config_entries
 from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_RESOURCES
+from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_RESOURCES, CONF_SCAN_INTERVAL
 
 from .const import CONF_DOMAINS, DOMAIN, CONF_FILTERS
 
@@ -85,7 +86,8 @@ class NetdataFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="sensors",
             data_schema=vol.Schema(
                     {
-                        vol.Required(CONF_RESOURCES): cv.multi_select(self.sensors)
+                        vol.Required(CONF_RESOURCES): cv.multi_select(self.sensors),
+                        vol.Required(CONF_SCAN_INTERVAL, default=1): vol.All(vol.Coerce(int), vol.Range(min=1))
                     }
             ),
             errors=errors,
@@ -147,7 +149,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="sensors",
             data_schema=vol.Schema(
                     {
-                        vol.Required(CONF_RESOURCES, default=self.config[CONF_RESOURCES]): cv.multi_select(self.sensors)
+                        vol.Required(CONF_RESOURCES, default=self.config[CONF_RESOURCES]): cv.multi_select(self.sensors),
+                        vol.Required(CONF_SCAN_INTERVAL, default=self.config[CONF_SCAN_INTERVAL]): vol.All(vol.Coerce(int), vol.Range(min=1))
                     }
             ),
             errors=errors,
