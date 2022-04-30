@@ -103,7 +103,7 @@ class NetdataFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="filters",
             data_schema=vol.Schema(
                     {
-                        vol.Required(CONF_FILTERS): cv.multi_select(self.filters)
+                        vol.Optional(CONF_FILTERS): cv.multi_select(self.filters)
                     }
             ),
             errors=errors,
