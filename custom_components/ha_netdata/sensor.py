@@ -13,7 +13,8 @@ from homeassistant.const import (
     CONF_PORT,
     CONF_RESOURCES,
     PERCENTAGE,
-    DATA_RATE_MEGABYTES_PER_SECOND
+    DATA_RATE_MEGABYTES_PER_SECOND,
+    TEMP_CELSIUS
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -63,20 +64,24 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         self._element = element
         self._name = name
         
+        self._unit = self.coordinator.data.metrics[self._sensor]["units"]
+        if self._unit == "kilobits/s":
+            self._unit_of_measurement = DATA_RATE_MEGABYTES_PER_SECOND
+        elif self._unit == "percentage":
+            self._unit_of_measurement == PERCENTAGE
+        elif self._unit == "Celsius":
+            self._unit_of_measurement == TEMP_CELSIUS
+        else:
+            self._unit_of_measurement = self._unit
+        
         self._icon = "mdi:chart-line"
         if "net." in self._sensor:
             if "received" in self._element:
                 self._icon = "mdi:download"
             elif "sent" in self._element:
                 self._icon = "mdi:upload"
-        
-        self._unit = self.coordinator.data.metrics[self._sensor]["units"]
-        if self._unit == "kilobits/s":
-            self._unit_of_measurement = DATA_RATE_MEGABYTES_PER_SECOND
-        elif self._unit == "percentage":
-            self._unit_of_measurement == PERCENTAGE
-        else:
-            self._unit_of_measurement = self._unit
+        if self._unit == "Celsius":
+            self._icon = "mdi:thermometer"
 
     @property
     def unique_id(self):
