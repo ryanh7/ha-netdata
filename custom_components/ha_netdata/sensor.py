@@ -68,9 +68,9 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         if self._unit == "kilobits/s":
             self._unit_of_measurement = DATA_RATE_MEGABYTES_PER_SECOND
         elif self._unit == "percentage":
-            self._unit_of_measurement == PERCENTAGE
+            self._unit_of_measurement = PERCENTAGE
         elif self._unit == "Celsius":
-            self._unit_of_measurement == TEMP_CELSIUS
+            self._unit_of_measurement = TEMP_CELSIUS
         else:
             self._unit_of_measurement = self._unit
         
