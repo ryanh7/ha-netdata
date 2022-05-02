@@ -14,7 +14,8 @@ from homeassistant.const import (
     CONF_RESOURCES,
     PERCENTAGE,
     DATA_RATE_MEGABYTES_PER_SECOND,
-    TEMP_CELSIUS
+    TEMP_CELSIUS,
+    POWER_WATT
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -64,15 +65,18 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         self._element = element
         self._name = name
         
-        self._unit = self.coordinator.data.metrics[self._sensor]["units"]
-        if self._unit == "kilobits/s":
+        unit = self.coordinator.data.metrics[self._sensor]["units"]
+        self._unit_lower = str(unit).lower()
+        if self._unit_lower == "kilobits/s":
             self._unit_of_measurement = DATA_RATE_MEGABYTES_PER_SECOND
-        elif self._unit == "percentage":
+        elif self._unit_lower == "percentage":
             self._unit_of_measurement = PERCENTAGE
-        elif self._unit == "Celsius":
+        elif self._unit_lower == "watts":
+            self._unit_of_measurement = POWER_WATT
+        elif self._unit_lower == "celsius":
             self._unit_of_measurement = TEMP_CELSIUS
         else:
-            self._unit_of_measurement = self._unit
+            self._unit_of_measurement = unit
         
         self._icon = "mdi:chart-line"
         if "net." in self._sensor:
@@ -80,8 +84,10 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
                 self._icon = "mdi:download"
             elif "sent" in self._element:
                 self._icon = "mdi:upload"
-        if self._unit == "Celsius":
+        if self._unit_lower == "celsius":
             self._icon = "mdi:thermometer"
+        elif self._unit_lower == "watts":
+            self._icon = "mdi:lightning-bolt"
 
     @property
     def unique_id(self):
@@ -109,7 +115,7 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         value = round(
             abs(resource_data["dimensions"][self._element]["value"]), 2)
 
-        if self._unit == "kilobits/s":
+        if self._unit_lower == "kilobits/s":
             return round(value / 1024 / 8, 3)
 
         return value
