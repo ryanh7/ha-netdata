@@ -131,6 +131,10 @@ class NetdataAlarms(CoordinatorEntity, SensorEntity):
         self._name = name
         self._host = host
         self._port = port
+    
+    @property
+    def unique_id(self):
+        return f"netdata-alarm-{self._host}-{self._port}"
 
     @property
     def name(self):
