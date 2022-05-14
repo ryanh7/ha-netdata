@@ -4,7 +4,6 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
-from netdata import Netdata
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import (
@@ -19,6 +18,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 
@@ -65,7 +65,7 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         self._element = element
         self._name = name
         
-        unit = self.coordinator.data.metrics[self._sensor]["units"]
+        unit = self.coordinator.data["metrics"][self._sensor]["units"]
         self._unit_lower = str(unit).lower()
         if self._unit_lower == "kilobits/s":
             self._unit_of_measurement = DATA_RATE_MEGABYTES_PER_SECOND
@@ -111,7 +111,7 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the state of the resources."""
-        resource_data = self.coordinator.data.metrics.get(self._sensor)
+        resource_data = self.coordinator.data["metrics"].get(self._sensor)
         value = round(
             abs(resource_data["dimensions"][self._element]["value"]), 2)
 
@@ -144,7 +144,7 @@ class NetdataAlarms(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the state of the resources."""
-        alarms = self.coordinator.data.alarms["alarms"]
+        alarms = self.coordinator.data["alarms"]["alarms"]
         self._state = None
         number_of_alarms = len(alarms)
         number_of_relevant_alarms = number_of_alarms
@@ -186,10 +186,14 @@ class NetdataData(DataUpdateCoordinator):
         super().__init__(
             hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=interval)
         )
-        self.api = Netdata(host, port=port)
+        self.session = async_get_clientsession(hass, False)
+        self.url_allmetrics = f"http://{host}:{port}/api/v1/allmetrics?format=json&help=no&types=no&timestamps=yes&names=yes&data=average"
+        self.url_alarms = f"http://{host}:{port}/api/v1/alarms?all&format=json"
 
     async def _async_update_data(self):
-        await self.api.get_allmetrics()
-        await self.api.get_alarms()
-
-        return self.api
+        data = {}
+        request = await self.session.get(url=self.url_allmetrics)
+        data["metrics"] = await request.json()
+        request = await self.session.get(url=self.url_alarms)
+        data["alarms"] = await request.json()
+        return data

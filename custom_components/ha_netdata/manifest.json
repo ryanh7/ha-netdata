@@ -2,7 +2,7 @@
   "domain": "ha_netdata",
   "name": "Netdata",
   "documentation": "https://github.com/ryanh7/ha-netdata",
-  "requirements": ["netdata==1.0.1"],
+  "requirements": [],
   "codeowners": ["@ryanh7"],
   "config_flow": true,
   "iot_class": "local_polling",

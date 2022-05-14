@@ -1,15 +1,15 @@
 from __future__ import annotations
-from email.policy import default
 import logging
+import requests
+import json
 
 import voluptuous as vol
-from netdata import Netdata
 from homeassistant import config_entries
 from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_RESOURCES, CONF_SCAN_INTERVAL
 
-from .const import CONF_DOMAINS, DOMAIN, CONF_FILTERS
+from .const import CONF_DOMAINS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,12 +24,13 @@ class NetdataFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            netdata = Netdata(user_input[CONF_HOST],
-                              port=user_input[CONF_PORT])
-            await netdata.get_allmetrics()
+            request_netdata = await self.hass.async_add_executor_job(
+                requests.get,
+                f"http://{user_input[CONF_HOST]}:{user_input[CONF_PORT]}/api/v1/allmetrics?format=json&help=no&types=no&timestamps=yes&names=yes&data=average"
+            )
+            self.metrics = json.loads(request_netdata.content)
             self.domains = sorted(
-                list({m.split(".")[0] for m in netdata.metrics}))
-            self.metrics = netdata.metrics
+                list({m.split(".")[0] for m in self.metrics}))
             self.config = user_input
             return await self.async_step_domains()
 
