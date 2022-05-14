@@ -108,10 +108,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self.config = dict(config_entry.data)
 
     async def async_step_init(self, user_input=None):
-        netdata = Netdata(self.config[CONF_HOST], port=self.config[CONF_PORT])
-        await netdata.get_allmetrics()
-        self.domains = sorted(list({m.split(".")[0] for m in netdata.metrics}))
-        self.metrics = netdata.metrics
+        request_netdata = await self.hass.async_add_executor_job(
+            requests.get,
+            f"http://{self.config[CONF_HOST]}:{self.config[CONF_PORT]}/api/v1/allmetrics?format=json&help=no&types=no&timestamps=yes&names=yes&data=average"
+        )
+        self.metrics = json.loads(request_netdata.content)
+        self.domains = sorted(
+            list({m.split(".")[0] for m in self.metrics}))
 
         if user_input is not None:
             self.sensors = []
