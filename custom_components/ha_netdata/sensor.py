@@ -5,7 +5,11 @@ from datetime import timedelta
 import logging
 
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorDeviceClass,
+    SensorStateClass
+)
 from homeassistant.const import (
     CONF_HOST,
     CONF_NAME,
@@ -64,30 +68,34 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         self._sensor = sensor
         self._element = element
         self._name = name
-        
-        unit = self.coordinator.data["metrics"][self._sensor]["units"]
-        self._unit_lower = str(unit).lower()
-        if self._unit_lower == "kilobits/s":
-            self._unit_of_measurement = DATA_RATE_MEGABYTES_PER_SECOND
-        elif self._unit_lower == "percentage":
-            self._unit_of_measurement = PERCENTAGE
-        elif self._unit_lower == "watts":
-            self._unit_of_measurement = POWER_WATT
-        elif self._unit_lower == "celsius":
-            self._unit_of_measurement = TEMP_CELSIUS
-        else:
-            self._unit_of_measurement = unit
-        
+
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+
         self._icon = "mdi:chart-line"
         if "net." in self._sensor:
             if "received" in self._element:
                 self._icon = "mdi:download"
             elif "sent" in self._element:
                 self._icon = "mdi:upload"
-        if self._unit_lower == "celsius":
-            self._icon = "mdi:thermometer"
+        
+        unit = self.coordinator.data["metrics"][self._sensor]["units"]
+        self._unit_lower = str(unit).lower()
+        if self._unit_lower == "kilobits/s":
+            self._attr_native_unit_of_measurement = DATA_RATE_MEGABYTES_PER_SECOND
+        elif self._unit_lower == "percentage":
+            self._attr_native_unit_of_measurement = PERCENTAGE
         elif self._unit_lower == "watts":
-            self._icon = "mdi:lightning-bolt"
+            self._attr_native_unit_of_measurement = POWER_WATT
+            self._attr_device_class = SensorDeviceClass.POWER
+            self._icon = None
+        elif self._unit_lower == "celsius":
+            self._attr_native_unit_of_measurement = TEMP_CELSIUS
+            self._attr_device_class = SensorDeviceClass.TEMPERATURE
+            self._icon = None
+        else:
+            self._attr_native_unit_of_measurement = unit
+        
+        
 
     @property
     def unique_id(self):
@@ -99,19 +107,24 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         return f"{self._name} {self._sensor} {self._element}"
 
     @property
-    def native_unit_of_measurement(self):
-        """Return the unit the value is expressed in."""
-        return self._unit_of_measurement
-
-    @property
     def icon(self):
         """Return the icon to use in the frontend, if any."""
         return self._icon
+    
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and self.coordinator.data["metrics"].get(self._sensor) is not None
+        )
 
     @property
     def native_value(self):
         """Return the state of the resources."""
         resource_data = self.coordinator.data["metrics"].get(self._sensor)
+        if resource_data is None:
+            return None
+
         value = round(
             abs(resource_data["dimensions"][self._element]["value"]), 2)
 
