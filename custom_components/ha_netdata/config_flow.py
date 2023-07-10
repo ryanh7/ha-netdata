@@ -131,7 +131,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="init",
             data_schema=vol.Schema(
                     {
-                        vol.Required(CONF_DOMAINS, default=self.config[CONF_DOMAINS]): cv.multi_select(self.domains)
+                        vol.Required(CONF_DOMAINS, default=list(d for d in self.config[CONF_DOMAINS] if d in self.domains)): cv.multi_select(self.domains)
                     }
             ),
         )
@@ -153,7 +153,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="sensors",
             data_schema=vol.Schema(
                     {
-                        vol.Required(CONF_RESOURCES, default=self.config[CONF_RESOURCES]): cv.multi_select(self.sensors),
+                        vol.Required(CONF_RESOURCES, default=list(s for s in self.config[CONF_RESOURCES] if s in self.sensors)): cv.multi_select(self.sensors),
                         vol.Required(CONF_SCAN_INTERVAL, default=self.config[CONF_SCAN_INTERVAL]): vol.All(vol.Coerce(int), vol.Range(min=1))
                     }
             ),
