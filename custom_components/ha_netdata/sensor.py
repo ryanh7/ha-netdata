@@ -81,7 +81,7 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         unit = self.coordinator.data["metrics"][self._sensor]["units"]
         self._unit_lower = str(unit).lower()
         if self._unit_lower == "kilobits/s":
-            self._attr_native_unit_of_measurement = UnitOfDataRate.DATA_RATE_MEGABYTES_PER_SECOND
+            self._attr_native_unit_of_measurement = UnitOfDataRate.MEGABYTES_PER_SECOND
         elif self._unit_lower == "percentage":
             self._attr_native_unit_of_measurement = PERCENTAGE
         elif self._unit_lower == "watts":
