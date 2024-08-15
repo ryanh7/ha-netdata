@@ -85,11 +85,11 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         elif self._unit_lower == "percentage":
             self._attr_native_unit_of_measurement = PERCENTAGE
         elif self._unit_lower == "watts":
-            self._attr_native_unit_of_measurement = UnitOfPower.POWER_WATT
+            self._attr_native_unit_of_measurement = UnitOfPower.WATT
             self._attr_device_class = SensorDeviceClass.POWER
             self._icon = None
         elif self._unit_lower == "celsius":
-            self._attr_native_unit_of_measurement = UnitOfTemperature.TEMP_CELSIUS
+            self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
             self._attr_device_class = SensorDeviceClass.TEMPERATURE
             self._icon = None
         else:
