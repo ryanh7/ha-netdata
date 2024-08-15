@@ -16,9 +16,9 @@ from homeassistant.const import (
     CONF_PORT,
     CONF_RESOURCES,
     PERCENTAGE,
-    DATA_RATE_MEGABYTES_PER_SECOND,
-    TEMP_CELSIUS,
-    POWER_WATT
+    UnitOfDataRate,
+    UnitOfTemperature,
+    UnitOfPower
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -81,15 +81,15 @@ class NetdataSensor(CoordinatorEntity, SensorEntity):
         unit = self.coordinator.data["metrics"][self._sensor]["units"]
         self._unit_lower = str(unit).lower()
         if self._unit_lower == "kilobits/s":
-            self._attr_native_unit_of_measurement = DATA_RATE_MEGABYTES_PER_SECOND
+            self._attr_native_unit_of_measurement = UnitOfDataRate.DATA_RATE_MEGABYTES_PER_SECOND
         elif self._unit_lower == "percentage":
             self._attr_native_unit_of_measurement = PERCENTAGE
         elif self._unit_lower == "watts":
-            self._attr_native_unit_of_measurement = POWER_WATT
+            self._attr_native_unit_of_measurement = UnitOfPower.POWER_WATT
             self._attr_device_class = SensorDeviceClass.POWER
             self._icon = None
         elif self._unit_lower == "celsius":
-            self._attr_native_unit_of_measurement = TEMP_CELSIUS
+            self._attr_native_unit_of_measurement = UnitOfTemperature.TEMP_CELSIUS
             self._attr_device_class = SensorDeviceClass.TEMPERATURE
             self._icon = None
         else:
